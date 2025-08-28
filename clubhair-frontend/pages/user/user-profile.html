@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../assets/css/user-profile.css" />
+    <title>Meu Perfil - Cliente</title>
+  </head>
+  <body>
+    <div class="profile-container">
+      <h2>Editar Perfil</h2>
+
+      <div class="input-group">
+        <label>Nome:</label>
+        <input type="text" id="userName" />
+      </div>
+
+      <div class="input-group">
+        <label>Email:</label>
+        <input type="email" id="userEmail" readonly />
+      </div>
+
+      <div class="input-group">
+        <label>Nova Senha:</label>
+        <input
+          type="password"
+          id="userPassword"
+          placeholder="Deixe em branco para manter"
+        />
+      </div>
+
+      <button class="save-button">Salvar Alterações</button>
+      <button class="delete-button">Excluir Conta</button>
+      <button class="back-button">Voltar</button>
+    </div>
+
+    <script src="../../assets/js/user-profile.js"></script>
+  </body>
+</html>
