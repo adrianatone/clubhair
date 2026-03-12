@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fazer Agendamento - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo">
+        <img src="../../assets/images/logo.png" alt="Logo"><span>ClubHair</span>
+      </a>
+    </div>
+  </nav>
+  <main style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <div class="card">
+        <button onclick="history.back()" class="btn btn-outline btn-sm">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h1 style="margin: 1rem 0;">Fazer Agendamento</h1>
+        <form id="bookingForm">
+          <div class="form-group">
+            <label for="date" class="form-label required">Data</label>
+            <input type="date" id="date" name="date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="time" class="form-label required">Horário</label>
+            <input type="time" id="time" name="time" class="form-input" required>
+          </div>
+          <button type="submit" class="btn btn-success btn-block">
+            <i class="fas fa-check"></i> Confirmar Agendamento
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) window.location.href = './client-login.html';
+    const params = new URLSearchParams(window.location.search);
+    const barbershopId = params.get('barbershopId');
+    const serviceId = params.get('serviceId');
+    const user = Auth.getUser();
+    if (!barbershopId || !serviceId) {
+      UI.showAlert('Informações inválidas.', 'error');
+      setTimeout(() => window.location.href = './client-barbershops.html', 2000);
+    }
+    document.getElementById('date').min = Utils.getTodayDate();
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const date = formData.get('date');
+      const time = formData.get('time');
+      if (!Utils.isFutureDate(date)) {
+        UI.showAlert('Por favor, selecione uma data futura.', 'error');
+        return;
+      }
+      try {
+        UI.showLoading('Criando agendamento...');
+        await API.createSchedule({
+          date,
+          time,
+          clientId: user.id,
+          barbershopId: parseInt(barbershopId),
+          serviceId: parseInt(serviceId),
+          status: 'pending'
+        });
+        UI.hideLoading();
+        UI.showAlert('Agendamento realizado com sucesso!', 'success');
+        setTimeout(() => window.location.href = './client-appointments.html', 1500);
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Erro ao criar agendamento.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

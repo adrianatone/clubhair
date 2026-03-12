@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meus Agendamentos - ClubHair</title>
+    <link rel="stylesheet" href="../../assets/css/global.css" />
+    <link rel="stylesheet" href="../../assets/css/components.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-container">
+        <a href="./client-dashboard.html" class="navbar-logo">
+          <img src="../../assets/images/logo.png" alt="Logo" /><span
+            >ClubHair</span
+          >
+        </a>
+        <div class="navbar-menu">
+          <a href="./client-dashboard.html" class="navbar-link"
+            ><i class="fas fa-home"></i> Início</a
+          >
+          <a href="./client-barbershops.html" class="navbar-link"
+            ><i class="fas fa-store"></i> Barbearias</a
+          >
+          <a href="./client-appointments.html" class="navbar-link active"
+            ><i class="fas fa-calendar"></i> Agendamentos</a
+          >
+          <a href="./client-profile.html" class="navbar-link"
+            ><i class="fas fa-user"></i> Perfil</a
+          >
+          <button id="logoutBtn" class="btn btn-sm btn-outline">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+    <main
+      style="
+        padding: 2rem;
+        min-height: 100vh;
+        background: var(--background-color);
+      "
+    >
+      <div style="max-width: 1024px; margin: 0 auto">
+        <header style="margin-bottom: 2rem">
+          <h1>Meus Agendamentos</h1>
+          <p>Gerencie seus agendamentos</p>
+        </header>
+        <div id="appointmentsList"></div>
+      </div>
+    </main>
+    <script src="../../assets/js/utils.js"></script>
+    <script src="../../assets/js/ui.js"></script>
+    <script src="../../assets/js/api.js"></script>
+    <script src="../../assets/js/auth.js"></script>
+    <script>
+      if (!Auth.isAuthenticated() || !Auth.isClient())
+        window.location.href = "./client-login.html";
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        UI.confirmModal("Confirmar Saída", "Tem certeza?", () =>
+          Auth.logout("../../index.html")
+        );
+      });
+      const user = Auth.getUser();
+      async function loadAppointments() {
+        try {
+          UI.showLoading("Carregando agendamentos...");
+          const data = await API.getSchedulesByClient(user.id);
+          UI.hideLoading();
+          const container = document.getElementById("appointmentsList");
+          if (!data.schedules || data.schedules.length === 0) {
+            UI.renderEmptyState(
+              container,
+              "Você não tem agendamentos.",
+              "fa-calendar"
+            );
+            return;
+          }
+          container.innerHTML =
+            '<div class="table-container"><table class="table"><thead><tr><th>Data</th><th>Hora</th><th>Barbearia</th><th>Serviço</th><th>Status</th><th>Ações</th></tr></thead><tbody id="appointmentsBody"></tbody></table></div>';
+          const tbody = document.getElementById("appointmentsBody");
+          for (const schedule of data.schedules) {
+            const row = document.createElement("tr");
+            const barbershop = await API.getBarbershop(schedule.barbershopId);
+            const service = await API.getService(schedule.serviceId);
+            row.innerHTML = `
+            <td>${Utils.formatDate(schedule.date)}</td>
+            <td>${Utils.formatTime(schedule.time)}</td>
+            <td>${Utils.escapeHtml(barbershop.name)}</td>
+            <td>${Utils.escapeHtml(service.name)}</td>
+            <td><span class="badge ${Utils.getStatusClass(
+              schedule.status
+            )}">${Utils.getStatusText(schedule.status)}</span></td>
+            <td>
+              ${
+                schedule.status === "pending"
+                  ? `<button class="btn btn-sm btn-error" onclick="cancelAppointment(${schedule.id})"><i class="fas fa-times"></i> Cancelar</button>`
+                  : "-"
+              }
+            </td>
+          `;
+            tbody.appendChild(row);
+          }
+        } catch (error) {
+          UI.hideLoading();
+          console.error("Erro:", error);
+          UI.showAlert("Erro ao carregar agendamentos.", "error");
+        }
+      }
+      async function cancelAppointment(scheduleId) {
+        UI.confirmModal(
+          "Cancelar Agendamento",
+          "Tem certeza que deseja cancelar este agendamento?",
+          async () => {
+            try {
+              UI.showLoading("Cancelando...");
+              await API.updateScheduleStatus(scheduleId, "cancelled");
+              UI.hideLoading();
+              UI.showAlert("Agendamento cancelado com sucesso!", "success");
+              loadAppointments();
+            } catch (error) {
+              UI.hideLoading();
+              console.error("Erro:", error);
+              UI.showAlert("Erro ao cancelar agendamento.", "error");
+            }
+          }
+        );
+      }
+      loadAppointments();
+    </script>
+  </body>
+</html>

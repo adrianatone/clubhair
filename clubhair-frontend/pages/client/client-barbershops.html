@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barbearias Disponíveis - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .page-container {
+      min-height: 100vh;
+      background-color: var(--background-color);
+    }
+    .page-content {
+      max-width: var(--max-width-lg);
+      margin: 0 auto;
+      padding: var(--spacing-xl) var(--spacing-md);
+    }
+    .page-header {
+      margin-bottom: var(--spacing-xl);
+    }
+    .page-title {
+      font-size: var(--text-3xl);
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+    .barbershops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--spacing-lg);
+      min-height: 60vh;
+    }
+    .barbershops-grid:has(.empty-state) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .barbershop-card {
+      background-color: var(--surface-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-lg);
+      transition: all var(--transition-base);
+    }
+    .barbershop-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+    .barbershop-name {
+      font-size: var(--text-xl);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--spacing-md);
+    }
+    .barbershop-info {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+      color: var(--text-secondary);
+    }
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo">
+        <img src="../../assets/images/logo.png" alt="Logo ClubHair">
+        <span>ClubHair</span>
+      </a>
+      <div class="navbar-menu">
+        <a href="./client-dashboard.html" class="navbar-link">
+          <i class="fas fa-home"></i> Início
+        </a>
+        <a href="./client-barbershops.html" class="navbar-link active">
+          <i class="fas fa-store"></i> Barbearias
+        </a>
+        <a href="./client-appointments.html" class="navbar-link">
+          <i class="fas fa-calendar"></i> Agendamentos
+        </a>
+        <a href="./client-profile.html" class="navbar-link">
+          <i class="fas fa-user"></i> Perfil
+        </a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+  <main id="main" class="page-container">
+    <div class="page-content">
+      <header class="page-header">
+        <h1 class="page-title">Barbearias Disponíveis</h1>
+        <p>Escolha uma barbearia para ver os serviços disponíveis</p>
+      </header>
+      <div id="barbershopsGrid" class="barbershops-grid"></div>
+    </div>
+  </main>
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) {
+      window.location.href = './client-login.html';
+    }
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza que deseja sair?', () => {
+        Auth.logout('../../index.html');
+      });
+    });
+    async function loadBarbershops() {
+      const grid = document.getElementById('barbershopsGrid');
+      try {
+        UI.showLoading('Carregando barbearias...');
+        const response = await API.getAllBarbershops();
+        UI.hideLoading();
+        if (!response.barbershops || response.barbershops.length === 0) {
+          UI.renderEmptyState(grid, 'Nenhuma barbearia cadastrada no momento.', 'fa-store');
+          return;
+        }
+        grid.innerHTML = '';
+        response.barbershops.forEach(barbershop => {
+          const card = Utils.createElement('article', {
+            className: 'barbershop-card'
+          }, `
+            <h2 class="barbershop-name">${Utils.escapeHtml(barbershop.name)}</h2>
+            <div class="barbershop-info">
+              <div class="info-item">
+                <i class="fas fa-phone" aria-hidden="true"></i>
+                <span>${Utils.formatPhone(barbershop.phone)}</span>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                <span>${Utils.escapeHtml(barbershop.address)}</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="window.location.href='./client-services.html?barbershopId=${barbershop.id}'">
+              <i class="fas fa-cut"></i> Ver Serviços
+            </button>
+          `);
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro ao carregar barbearias:', error);
+        UI.showAlert('Erro ao carregar barbearias. Tente novamente.', 'error');
+      }
+    }
+    loadBarbershops();
+  </script>
+</body>
+</html>

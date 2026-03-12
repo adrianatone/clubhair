@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu Perfil - ClubHair</title>
+    <link rel="stylesheet" href="../../assets/css/global.css" />
+    <link rel="stylesheet" href="../../assets/css/components.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-container">
+        <a href="./client-dashboard.html" class="navbar-logo">
+          <img src="../../assets/images/logo.png" alt="Logo" /><span
+            >ClubHair</span
+          >
+        </a>
+        <div class="navbar-menu">
+          <a href="./client-dashboard.html" class="navbar-link"
+            ><i class="fas fa-home"></i> Início</a
+          >
+          <a href="./client-barbershops.html" class="navbar-link"
+            ><i class="fas fa-store"></i> Barbearias</a
+          >
+          <a href="./client-appointments.html" class="navbar-link"
+            ><i class="fas fa-calendar"></i> Agendamentos</a
+          >
+          <a href="./client-profile.html" class="navbar-link active"
+            ><i class="fas fa-user"></i> Perfil</a
+          >
+          <button id="logoutBtn" class="btn btn-sm btn-outline">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+    <main
+      style="
+        padding: 2rem;
+        min-height: 100vh;
+        background: var(--background-color);
+      "
+    >
+      <div style="max-width: 600px; margin: 0 auto">
+        <div class="card">
+          <h1 style="margin-bottom: 2rem">Meu Perfil</h1>
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="name" class="form-label required"
+                >Nome Completo</label
+              >
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-input"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email" class="form-label required">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-input"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="phone" class="form-label required">Telefone</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                class="form-input"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password" class="form-label"
+                >Nova Senha (opcional)</label
+              >
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input"
+                placeholder="Deixe em branco para não alterar"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+    <script src="../../assets/js/utils.js"></script>
+    <script src="../../assets/js/ui.js"></script>
+    <script src="../../assets/js/api.js"></script>
+    <script src="../../assets/js/auth.js"></script>
+    <script>
+      if (!Auth.isAuthenticated() || !Auth.isClient())
+        window.location.href = "./client-login.html";
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        UI.confirmModal("Confirmar Saída", "Tem certeza?", () =>
+          Auth.logout("../../index.html")
+        );
+      });
+      const user = Auth.getUser();
+      document.getElementById("name").value = user.name || "";
+      document.getElementById("email").value = user.email || "";
+      document.getElementById("phone").value = user.phone || "";
+      document
+        .getElementById("profileForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const updateData = {
+            name: formData.get("name").trim(),
+            email: formData.get("email").trim(),
+            phone: formData.get("phone").trim(),
+          };
+          const password = formData.get("password");
+          if (password) {
+            if (!Utils.validatePassword(password)) {
+              UI.showAlert("A senha deve ter no mínimo 6 caracteres.", "error");
+              return;
+            }
+            updateData.password = password;
+          }
+          try {
+            UI.showLoading("Atualizando perfil...");
+            await API.updateUser(user.id, updateData);
+            Auth.updateUser(updateData);
+            UI.hideLoading();
+            UI.showAlert("Perfil atualizado com sucesso!", "success");
+          } catch (error) {
+            UI.hideLoading();
+            console.error("Erro:", error);
+            UI.showAlert(error.message || "Erro ao atualizar perfil.", "error");
+          }
+        });
+    </script>
+  </body>
+</html>
