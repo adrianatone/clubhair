@@ -104,6 +104,348 @@ O sistema foi desenvolvido com base nas diretrizes de acessibilidade da **WCAG (
 
 ---
 
+## 🛠️ Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado em sua máquina:
+
+- ✅ **Node.js** (versão 18 ou superior) - [Download](https://nodejs.org/)
+- ✅ **XAMPP** (ou MySQL Server) - [Download](https://www.apachefriends.org/)
+- ✅ **NPM** ou **Yarn** (gerenciador de pacotes)
+- ✅ **Git** (opcional, para clonar o repositório)
+- ✅ **Navegador moderno** (Chrome, Firefox, Edge, etc.)
+
+---
+
+## ⚙️ Como Configurar o Projeto Localmente
+
+### 1️⃣ Configure o Banco de Dados
+
+1. Abra o **XAMPP** e inicie os serviços **Apache** e **MySQL**
+2. Acesse o **phpMyAdmin** (padrão: `http://localhost/phpmyadmin`)
+3. Crie um novo banco de dados com o nome `clubhair_db`
+4. Selecione a codificação `utf8_general_ci` ou `utf8mb4_general_ci`
+
+### 2️⃣ Configure as Variáveis de Ambiente
+
+No diretório `backend/`, crie um arquivo `.env` com o seguinte conteúdo:
+
+```env
+DB_NAME=clubhair_db
+DB_USER=root
+DB_PASS=
+DB_HOST=localhost
+```
+
+> 💡 **Nota**: Se sua instalação do MySQL tiver senha, preencha o campo `DB_PASS` com a senha correta.
+
+### 3️⃣ Instale as Dependências do Back-End
+
+No terminal, navegue até a pasta `backend/` e execute:
+
+```bash
+cd backend
+npm install
+```
+
+Isso instalará todas as dependências necessárias listadas no `package.json`:
+- express
+- sequelize
+- mysql2
+- dotenv
+- cors
+- nodemon (dev)
+
+### 4️⃣ Sincronize o Banco de Dados
+
+Ainda no diretório `backend/`, execute o script de sincronização:
+
+```bash
+node syncDatabase.js
+```
+
+✅ **Esse comando criará todas as tabelas** no banco de dados baseadas nos models:
+- `Users` - Usuários (clientes e barbearias)
+- `Barbershops` - Informações das barbearias
+- `Services` - Serviços oferecidos pelas barbearias
+- `Schedules` - Agendamentos realizados
+
+### 5️⃣ Inicie o Servidor Back-End
+
+No diretório `backend/`, execute:
+
+```bash
+node server.js
+```
+
+Ou, para desenvolvimento com auto-reload:
+
+```bash
+npm run dev
+```
+
+Se tudo estiver configurado corretamente, você verá no terminal:
+
+```
+✅ Database connected successfully!
+🚀 Server is running at: http://localhost:3000
+```
+
+Para verificar se a API está funcionando, acesse:
+```
+http://localhost:3000
+```
+
+Você deve ver a mensagem: **"ClubHair API is running!"**
+
+### 6️⃣ Abra o Front-End
+
+Navegue até o diretório `frontend/` e abra o arquivo `index.html` no seu navegador:
+
+```
+frontend/index.html
+```
+
+Ou utilize uma extensão do VSCode como **Live Server** para servir os arquivos estáticos.
+
+🎉 **Pronto!** O sistema ClubHair está rodando localmente.
+
+### Controle do Sistema:
+
+- 🔧 **Back-End** (API Express) processa todas as requisições
+- 🗄️ **MySQL** com Sequelize gerencia os dados
+- 🎨 **JavaScript** no Front-End consome a API
+- 💾 **LocalStorage** armazena dados do usuário logado
+
+---
+
+## 🗂️ Estrutura de Pastas Comentada
+
+```
+clubhair/
+│
+├── backend/                      # Diretório principal do Back-End
+│   ├── config/                   # Configurações do projeto
+│   │   └── database.js           # Configuração de conexão com MySQL via Sequelize
+│   │
+│   ├── models/                   # Models do Sequelize (representam tabelas)
+│   │   ├── User.js               # Model de Usuário (client ou barbershop)
+│   │   ├── Barbershop.js         # Model de Barbearia (dados da loja)
+│   │   ├── Service.js            # Model de Serviço (oferecido pela barbearia)
+│   │   └── Schedule.js           # Model de Agendamento (entre cliente e barbearia)
+│   │
+│   ├── routes/                   # Rotas da API (endpoints REST)
+│   │   ├── userRoutes.js         # Rotas de usuários (CRUD + login)
+│   │   ├── barbershopRoutes.js   # Rotas de barbearias (CRUD + busca)
+│   │   ├── serviceRoutes.js      # Rotas de serviços (CRUD + filtros)
+│   │   └── scheduleRoutes.js     # Rotas de agendamentos (CRUD + status)
+│   │
+│   ├── .env                      # Variáveis de ambiente (DB_NAME, DB_USER, etc.)
+│   ├── .gitignore                # Arquivos a serem ignorados pelo Git
+│   ├── app.js                    # Configuração principal do Express (middlewares e rotas)
+│   ├── server.js                 # Inicialização do servidor HTTP
+│   ├── syncDatabase.js           # Script para sincronizar models com o banco
+│   ├── testConnection.js         # Script para testar conexão com o banco
+│   ├── package.json              # Dependências e scripts NPM
+│   └── package-lock.json         # Lock de versões das dependências
+│
+├── frontend/                     # Diretório principal do Front-End
+│   ├── assets/                   # Recursos estáticos (CSS, JS, imagens)
+│   │   ├── css/                  # Estilos CSS organizados por funcionalidade
+│   │   │   ├── components.css    # Componentes Reutilizáveis (Botões, modal e etc...)
+│   │   │   └── global.css        # Arquivo com reset CSS, variáveis globais e estilos base
+│   │   │
+│   │   ├── js/                   # Scripts JavaScript modulares
+│   │   │   ├── api.js            # Funções para consumir a API (fetch)
+│   │   │   ├── auth.js           # Funções de autenticação e autorização
+│   │   │   ├── utils.js          # Funções utilitárias (formatação, validação)
+│   │   │   └── ui.js             # Funções de manipulação da interface
+│   │   │
+│   │   └── images/               # Imagens do projeto (logo, ícones, etc.)
+│   │       └── logo.png          # Logo do ClubHair
+│   │
+│   ├── pages/                    # Páginas HTML do sistema
+│   │   ├── barbershop/           # Fluxo completo da barbearia
+│   │   │   ├── barbershop-register.html    # Registro de barbearia
+│   │   │   ├── barbershop-login.html       # Login de barbearia
+│   │   │   ├── barbershop-dashboard.html   # Dashboard principal
+│   │   │   ├── barbershop-profile.html     # Edição de perfil
+│   │   │   ├── barbershop-services.html    # Gerenciamento de serviços
+│   │   │   └── barbershop-appointments.html # Visualização de agendamentos
+│   │   │
+│   │   └── client/               # Fluxo completo do cliente
+│   │       ├── client-register.html        # Registro de cliente
+│   │       ├── client-login.html           # Login de cliente
+│   │       ├── client-dashboard.html       # Dashboard principal
+│   │       ├── client-profile.html         # Edição de perfil
+│   │       ├── client-barbershops.html     # Listagem de barbearias
+│   │       ├── client-services.html        # Serviços de uma barbearia
+│   │       ├── client-booking.html         # Formulário de agendamento
+│   │       └── client-appointments.html    # Meus agendamentos
+│   │
+│   └── index.html                # Página inicial (landing page)
+│
+│
+└── README.md                     # 📖 Este arquivo de documentação
+```
+
+---
+
+
+## 🗄️ Modelos do Banco de Dados
+
+### Tabela: `users`
+
+| Campo | Tipo | Descrição | Restrições |
+|-------|------|-----------|------------|
+| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
+| name | VARCHAR(255) | Nome completo do usuário | NOT NULL |
+| email | VARCHAR(255) | Email do usuário | NOT NULL, UNIQUE |
+| phone | VARCHAR(11) | Telefone do usuário | NULL, 10-11 dígitos |
+| password | VARCHAR(255) | Senha (sem criptografia) | NOT NULL |
+| type | ENUM | Tipo de usuário | 'client' ou 'barbershop', NOT NULL |
+| createdAt | DATETIME | Data de criação | AUTO |
+| updatedAt | DATETIME | Data de atualização | AUTO |
+
+---
+
+### Tabela: `barbershops`
+
+| Campo | Tipo | Descrição | Restrições |
+|-------|------|-----------|------------|
+| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
+| name | VARCHAR(255) | Nome da barbearia | NOT NULL, UNIQUE |
+| phone | VARCHAR(255) | Telefone da barbearia | NOT NULL |
+| address | VARCHAR(255) | Endereço completo | NOT NULL |
+| userId | INTEGER | ID do usuário dono | FOREIGN KEY → users(id), CASCADE |
+| createdAt | DATETIME | Data de criação | AUTO |
+| updatedAt | DATETIME | Data de atualização | AUTO |
+
+**Relacionamento:**
+- Um `User` (tipo barbershop) possui uma `Barbershop`
+- Deletar `User` deleta a `Barbershop` (CASCADE)
+
+---
+
+### Tabela: `services`
+
+| Campo | Tipo | Descrição | Restrições |
+|-------|------|-----------|------------|
+| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
+| name | VARCHAR(255) | Nome do serviço | NOT NULL |
+| price | DECIMAL(10,2) | Preço do serviço (R$) | NOT NULL, > 0 |
+| duration | INTEGER | Duração em minutos | NOT NULL, 1-480 |
+| barbershopId | INTEGER | ID da barbearia | FOREIGN KEY → barbershops(id), CASCADE |
+| createdAt | DATETIME | Data de criação | AUTO |
+| updatedAt | DATETIME | Data de atualização | AUTO |
+
+**Relacionamento:**
+- Uma `Barbershop` possui vários `Services`
+- Deletar `Barbershop` deleta seus `Services` (CASCADE)
+
+---
+
+### Tabela: `schedules`
+
+| Campo | Tipo | Descrição | Restrições |
+|-------|------|-----------|------------|
+| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
+| date | DATE | Data do agendamento | NOT NULL |
+| time | TIME | Horário do agendamento | NOT NULL |
+| status | ENUM | Status do agendamento | 'pending', 'confirmed', 'completed', 'canceled' |
+| clientId | INTEGER | ID do cliente | FOREIGN KEY → users(id), CASCADE |
+| barbershopId | INTEGER | ID da barbearia | FOREIGN KEY → barbershops(id), CASCADE |
+| serviceId | INTEGER | ID do serviço | FOREIGN KEY → services(id), SET NULL |
+| createdAt | DATETIME | Data de criação | AUTO |
+| updatedAt | DATETIME | Data de atualização | AUTO |
+
+**Relacionamentos:**
+- Um `User` (cliente) pode ter vários `Schedules`
+- Uma `Barbershop` pode ter vários `Schedules`
+- Um `Service` pode estar em vários `Schedules`
+- Deletar `User` ou `Barbershop` deleta os `Schedules` relacionados (CASCADE)
+- Deletar `Service` mantém o `Schedule` mas define `serviceId` como NULL (SET NULL)
+
+---
+
+## 🔧 Troubleshooting Comum
+
+### ❌ Erro: "Database connection failed"
+
+**Problema**: O servidor não consegue se conectar ao MySQL.
+
+**Soluções:**
+1. Verifique se o XAMPP está rodando e o MySQL está ativo
+2. Confirme as credenciais no arquivo `.env`
+3. Teste a conexão com: `node testConnection.js`
+4. Verifique se o banco `clubhair_db` foi criado no phpMyAdmin
+
+---
+
+### ❌ Erro: "Table doesn't exist"
+
+**Problema**: As tabelas não foram criadas no banco de dados.
+
+**Solução:**
+Execute o script de sincronização:
+```bash
+node syncDatabase.js
+```
+
+---
+
+### ❌ Erro: "Port 3000 already in use"
+
+**Problema**: Já existe um processo rodando na porta 3000.
+
+**Soluções:**
+1. Mate o processo existente:
+    - **Linux/Mac**: `lsof -ti:3000 | xargs kill -9`
+    - **Windows**: `netstat -ano | findstr :3000` e depois `taskkill /PID <PID> /F`
+2. Ou altere a porta no `server.js`
+
+---
+
+### ❌ Erro: "Cannot find module"
+
+**Problema**: Dependências não foram instaladas.
+
+**Solução:**
+```bash
+cd backend
+npm install
+```
+
+---
+
+### ❌ Erro: "CORS blocked"
+
+**Problema**: Requisições do frontend sendo bloqueadas por CORS.
+
+**Solução:**
+O middleware CORS já está configurado no `app.js`. Certifique-se de que o servidor está rodando corretamente.
+
+---
+
+### ❌ Erro: "User not found" após login
+
+**Problema**: LocalStorage não está salvando os dados do usuário.
+
+**Soluções:**
+1. Verifique o console do navegador (F12) para erros de JavaScript
+2. Confirme que o navegador permite LocalStorage
+3. Limpe o cache e LocalStorage: `localStorage.clear()`
+
+---
+
+### ❌ Erro: "Conflict: Este horário já está ocupado"
+
+**Problema**: Tentativa de agendar um horário já reservado.
+
+**Solução:**
+Este é um comportamento esperado. Escolha outro horário disponível ou cancele o agendamento existente primeiro.
+
+---
+
 ### 👥 Endpoints de Usuários
 
 #### 1. Criar Usuário
@@ -750,349 +1092,6 @@ Response 200:
 ```
 
 ---
-
-## 🛠️ Pré-requisitos
-
-Antes de começar, certifique-se de ter instalado em sua máquina:
-
-- ✅ **Node.js** (versão 18 ou superior) - [Download](https://nodejs.org/)
-- ✅ **XAMPP** (ou MySQL Server) - [Download](https://www.apachefriends.org/)
-- ✅ **NPM** ou **Yarn** (gerenciador de pacotes)
-- ✅ **Git** (opcional, para clonar o repositório)
-- ✅ **Navegador moderno** (Chrome, Firefox, Edge, etc.)
-
----
-
-## ⚙️ Como Configurar o Projeto Localmente
-
-### 1️⃣ Configure o Banco de Dados
-
-1. Abra o **XAMPP** e inicie os serviços **Apache** e **MySQL**
-2. Acesse o **phpMyAdmin** (padrão: `http://localhost/phpmyadmin`)
-3. Crie um novo banco de dados com o nome `clubhair_db`
-4. Selecione a codificação `utf8_general_ci` ou `utf8mb4_general_ci`
-
-### 2️⃣ Configure as Variáveis de Ambiente
-
-No diretório `backend/`, crie um arquivo `.env` com o seguinte conteúdo:
-
-```env
-DB_NAME=clubhair_db
-DB_USER=root
-DB_PASS=
-DB_HOST=localhost
-```
-
-> 💡 **Nota**: Se sua instalação do MySQL tiver senha, preencha o campo `DB_PASS` com a senha correta.
-
-### 3️⃣ Instale as Dependências do Back-End
-
-No terminal, navegue até a pasta `backend/` e execute:
-
-```bash
-cd backend
-npm install
-```
-
-Isso instalará todas as dependências necessárias listadas no `package.json`:
-- express
-- sequelize
-- mysql2
-- dotenv
-- cors
-- nodemon (dev)
-
-### 4️⃣ Sincronize o Banco de Dados
-
-Ainda no diretório `backend/`, execute o script de sincronização:
-
-```bash
-node syncDatabase.js
-```
-
-✅ **Esse comando criará todas as tabelas** no banco de dados baseadas nos models:
-- `Users` - Usuários (clientes e barbearias)
-- `Barbershops` - Informações das barbearias
-- `Services` - Serviços oferecidos pelas barbearias
-- `Schedules` - Agendamentos realizados
-
-### 5️⃣ Inicie o Servidor Back-End
-
-No diretório `backend/`, execute:
-
-```bash
-node server.js
-```
-
-Ou, para desenvolvimento com auto-reload:
-
-```bash
-npm run dev
-```
-
-Se tudo estiver configurado corretamente, você verá no terminal:
-
-```
-✅ Database connected successfully!
-🚀 Server is running at: http://localhost:3000
-```
-
-Para verificar se a API está funcionando, acesse:
-```
-http://localhost:3000
-```
-
-Você deve ver a mensagem: **"ClubHair API is running!"**
-
-### 6️⃣ Abra o Front-End
-
-Navegue até o diretório `frontend/` e abra o arquivo `index.html` no seu navegador:
-
-```
-frontend/index.html
-```
-
-Ou utilize uma extensão do VSCode como **Live Server** para servir os arquivos estáticos.
-
-🎉 **Pronto!** O sistema ClubHair está rodando localmente.
-
-### Controle do Sistema:
-
-- 🔧 **Back-End** (API Express) processa todas as requisições
-- 🗄️ **MySQL** com Sequelize gerencia os dados
-- 🎨 **JavaScript** no Front-End consome a API
-- 💾 **LocalStorage** armazena dados do usuário logado
-
----
-
-## 🗂️ Estrutura de Pastas Comentada
-
-```
-clubhair/
-│
-├── backend/                      # Diretório principal do Back-End
-│   ├── config/                   # Configurações do projeto
-│   │   └── database.js           # Configuração de conexão com MySQL via Sequelize
-│   │
-│   ├── models/                   # Models do Sequelize (representam tabelas)
-│   │   ├── User.js               # Model de Usuário (client ou barbershop)
-│   │   ├── Barbershop.js         # Model de Barbearia (dados da loja)
-│   │   ├── Service.js            # Model de Serviço (oferecido pela barbearia)
-│   │   └── Schedule.js           # Model de Agendamento (entre cliente e barbearia)
-│   │
-│   ├── routes/                   # Rotas da API (endpoints REST)
-│   │   ├── userRoutes.js         # Rotas de usuários (CRUD + login)
-│   │   ├── barbershopRoutes.js   # Rotas de barbearias (CRUD + busca)
-│   │   ├── serviceRoutes.js      # Rotas de serviços (CRUD + filtros)
-│   │   └── scheduleRoutes.js     # Rotas de agendamentos (CRUD + status)
-│   │
-│   ├── .env                      # Variáveis de ambiente (DB_NAME, DB_USER, etc.)
-│   ├── .gitignore                # Arquivos a serem ignorados pelo Git
-│   ├── app.js                    # Configuração principal do Express (middlewares e rotas)
-│   ├── server.js                 # Inicialização do servidor HTTP
-│   ├── syncDatabase.js           # Script para sincronizar models com o banco
-│   ├── testConnection.js         # Script para testar conexão com o banco
-│   ├── package.json              # Dependências e scripts NPM
-│   └── package-lock.json         # Lock de versões das dependências
-│
-├── frontend/                     # Diretório principal do Front-End
-│   ├── assets/                   # Recursos estáticos (CSS, JS, imagens)
-│   │   ├── css/                  # Estilos CSS organizados por funcionalidade
-│   │   │   ├── components.css    # Componentes Reutilizáveis (Botões, modal e etc...)
-│   │   │   └── global.css        # Arquivo com reset CSS, variáveis globais e estilos base
-│   │   │
-│   │   ├── js/                   # Scripts JavaScript modulares
-│   │   │   ├── api.js            # Funções para consumir a API (fetch)
-│   │   │   ├── auth.js           # Funções de autenticação e autorização
-│   │   │   ├── utils.js          # Funções utilitárias (formatação, validação)
-│   │   │   └── ui.js             # Funções de manipulação da interface
-│   │   │
-│   │   └── images/               # Imagens do projeto (logo, ícones, etc.)
-│   │       └── logo.png          # Logo do ClubHair
-│   │
-│   ├── pages/                    # Páginas HTML do sistema
-│   │   ├── barbershop/           # Fluxo completo da barbearia
-│   │   │   ├── barbershop-register.html    # Registro de barbearia
-│   │   │   ├── barbershop-login.html       # Login de barbearia
-│   │   │   ├── barbershop-dashboard.html   # Dashboard principal
-│   │   │   ├── barbershop-profile.html     # Edição de perfil
-│   │   │   ├── barbershop-services.html    # Gerenciamento de serviços
-│   │   │   └── barbershop-appointments.html # Visualização de agendamentos
-│   │   │
-│   │   └── client/               # Fluxo completo do cliente
-│   │       ├── client-register.html        # Registro de cliente
-│   │       ├── client-login.html           # Login de cliente
-│   │       ├── client-dashboard.html       # Dashboard principal
-│   │       ├── client-profile.html         # Edição de perfil
-│   │       ├── client-barbershops.html     # Listagem de barbearias
-│   │       ├── client-services.html        # Serviços de uma barbearia
-│   │       ├── client-booking.html         # Formulário de agendamento
-│   │       └── client-appointments.html    # Meus agendamentos
-│   │
-│   └── index.html                # Página inicial (landing page)
-│
-│
-└── README.md                     # 📖 Este arquivo de documentação
-```
-
----
-
-
-## 🗄️ Modelos do Banco de Dados
-
-### Tabela: `users`
-
-| Campo | Tipo | Descrição | Restrições |
-|-------|------|-----------|------------|
-| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
-| name | VARCHAR(255) | Nome completo do usuário | NOT NULL |
-| email | VARCHAR(255) | Email do usuário | NOT NULL, UNIQUE |
-| phone | VARCHAR(11) | Telefone do usuário | NULL, 10-11 dígitos |
-| password | VARCHAR(255) | Senha (sem criptografia) | NOT NULL |
-| type | ENUM | Tipo de usuário | 'client' ou 'barbershop', NOT NULL |
-| createdAt | DATETIME | Data de criação | AUTO |
-| updatedAt | DATETIME | Data de atualização | AUTO |
-
----
-
-### Tabela: `barbershops`
-
-| Campo | Tipo | Descrição | Restrições |
-|-------|------|-----------|------------|
-| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
-| name | VARCHAR(255) | Nome da barbearia | NOT NULL, UNIQUE |
-| phone | VARCHAR(255) | Telefone da barbearia | NOT NULL |
-| address | VARCHAR(255) | Endereço completo | NOT NULL |
-| userId | INTEGER | ID do usuário dono | FOREIGN KEY → users(id), CASCADE |
-| createdAt | DATETIME | Data de criação | AUTO |
-| updatedAt | DATETIME | Data de atualização | AUTO |
-
-**Relacionamento:**
-- Um `User` (tipo barbershop) possui uma `Barbershop`
-- Deletar `User` deleta a `Barbershop` (CASCADE)
-
----
-
-### Tabela: `services`
-
-| Campo | Tipo | Descrição | Restrições |
-|-------|------|-----------|------------|
-| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
-| name | VARCHAR(255) | Nome do serviço | NOT NULL |
-| price | DECIMAL(10,2) | Preço do serviço (R$) | NOT NULL, > 0 |
-| duration | INTEGER | Duração em minutos | NOT NULL, 1-480 |
-| barbershopId | INTEGER | ID da barbearia | FOREIGN KEY → barbershops(id), CASCADE |
-| createdAt | DATETIME | Data de criação | AUTO |
-| updatedAt | DATETIME | Data de atualização | AUTO |
-
-**Relacionamento:**
-- Uma `Barbershop` possui vários `Services`
-- Deletar `Barbershop` deleta seus `Services` (CASCADE)
-
----
-
-### Tabela: `schedules`
-
-| Campo | Tipo | Descrição | Restrições |
-|-------|------|-----------|------------|
-| id | INTEGER | Identificador único | PRIMARY KEY, AUTO_INCREMENT |
-| date | DATE | Data do agendamento | NOT NULL |
-| time | TIME | Horário do agendamento | NOT NULL |
-| status | ENUM | Status do agendamento | 'pending', 'confirmed', 'completed', 'canceled' |
-| clientId | INTEGER | ID do cliente | FOREIGN KEY → users(id), CASCADE |
-| barbershopId | INTEGER | ID da barbearia | FOREIGN KEY → barbershops(id), CASCADE |
-| serviceId | INTEGER | ID do serviço | FOREIGN KEY → services(id), SET NULL |
-| createdAt | DATETIME | Data de criação | AUTO |
-| updatedAt | DATETIME | Data de atualização | AUTO |
-
-**Relacionamentos:**
-- Um `User` (cliente) pode ter vários `Schedules`
-- Uma `Barbershop` pode ter vários `Schedules`
-- Um `Service` pode estar em vários `Schedules`
-- Deletar `User` ou `Barbershop` deleta os `Schedules` relacionados (CASCADE)
-- Deletar `Service` mantém o `Schedule` mas define `serviceId` como NULL (SET NULL)
-
----
-
-## 🔧 Troubleshooting Comum
-
-### ❌ Erro: "Database connection failed"
-
-**Problema**: O servidor não consegue se conectar ao MySQL.
-
-**Soluções:**
-1. Verifique se o XAMPP está rodando e o MySQL está ativo
-2. Confirme as credenciais no arquivo `.env`
-3. Teste a conexão com: `node testConnection.js`
-4. Verifique se o banco `clubhair_db` foi criado no phpMyAdmin
-
----
-
-### ❌ Erro: "Table doesn't exist"
-
-**Problema**: As tabelas não foram criadas no banco de dados.
-
-**Solução:**
-Execute o script de sincronização:
-```bash
-node syncDatabase.js
-```
-
----
-
-### ❌ Erro: "Port 3000 already in use"
-
-**Problema**: Já existe um processo rodando na porta 3000.
-
-**Soluções:**
-1. Mate o processo existente:
-    - **Linux/Mac**: `lsof -ti:3000 | xargs kill -9`
-    - **Windows**: `netstat -ano | findstr :3000` e depois `taskkill /PID <PID> /F`
-2. Ou altere a porta no `server.js`
-
----
-
-### ❌ Erro: "Cannot find module"
-
-**Problema**: Dependências não foram instaladas.
-
-**Solução:**
-```bash
-cd backend
-npm install
-```
-
----
-
-### ❌ Erro: "CORS blocked"
-
-**Problema**: Requisições do frontend sendo bloqueadas por CORS.
-
-**Solução:**
-O middleware CORS já está configurado no `app.js`. Certifique-se de que o servidor está rodando corretamente.
-
----
-
-### ❌ Erro: "User not found" após login
-
-**Problema**: LocalStorage não está salvando os dados do usuário.
-
-**Soluções:**
-1. Verifique o console do navegador (F12) para erros de JavaScript
-2. Confirme que o navegador permite LocalStorage
-3. Limpe o cache e LocalStorage: `localStorage.clear()`
-
----
-
-### ❌ Erro: "Conflict: Este horário já está ocupado"
-
-**Problema**: Tentativa de agendar um horário já reservado.
-
-**Solução:**
-Este é um comportamento esperado. Escolha outro horário disponível ou cancele o agendamento existente primeiro.
-
----
-
 
 ## 👩‍💻 Autoria
 
