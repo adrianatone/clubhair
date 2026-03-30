@@ -7,7 +7,7 @@ Ele permite controlar cadastros de usuários e barbearias, criar e gerenciar ser
 👉 O projeto foi desenvolvido com foco em uso local, para facilitar testes e futuras expansões.
 
 🚀 Tecnologias Utilizadas
-Tecnologia    |    Descrição
+Tecnologia    |    Descrição|
 ---------------------------------------------------------------
 Node.js          (Back-End)  | Ambiente de execução JavaScript server-side.
 Express          (Back-End)  | Framework minimalista de rotas e middlewares
@@ -16,7 +16,7 @@ MySQL(via XAMPP) (Back-End)  | Banco de dados relacional utilizado localmente.
 JavaScript       (Front-End) | Programação de toda interação no front-end.
 HTML5/CSS3       (Front-End) | Estrutura e estilização das páginas.
 ---------------------------------------------------------------
-Auxiliares    |    Descrição
+Auxiliares    |    Descrição|
 ---------------------------------------------------------------
 XAMPP         | Ambiente de desenvolvimento com MySQL.
 POSTMAN       | Testes de rotas HTTP (API).
