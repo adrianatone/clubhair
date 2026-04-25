@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Meu Perfil - ClubHair" />
+  <title>Meu Perfil - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button class="navbar-hamburger" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu" type="button">
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./client-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./client-barbershops.html" class="navbar-link"><i class="fas fa-store" aria-hidden="true"></i> Barbearias</a>
+        <a href="./client-appointments.html" class="navbar-link"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./client-profile.html" class="navbar-link active" aria-current="page"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <div class="card">
+        <h1 style="margin-bottom: 2rem;">Meu Perfil</h1>
+        <form id="profileForm" novalidate>
+          <div class="form-group">
+            <label for="name" class="form-label required">Nome Completo</label>
+            <input type="text" id="name" name="name" class="form-input" required aria-required="true" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label required">Email</label>
+            <input type="email" id="email" name="email" class="form-input" required aria-required="true" autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Telefone</label>
+            <input type="tel" id="phone" name="phone" class="form-input" autocomplete="tel" inputmode="numeric" />
+            <span class="form-help">10 ou 11 dígitos numéricos</span>
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">
+              Nova Senha <span style="font-weight:400; color: var(--text-secondary);">(opcional)</span>
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="Deixe em branco para não alterar"
+              autocomplete="new-password"
+              aria-describedby="password-help"
+            />
+            <span id="password-help" class="form-help">Mínimo 6 caracteres se preenchida.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-save" aria-hidden="true"></i> Salvar Alterações
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) {
+      window.location.href = './client-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza?', () =>
+        Auth.logout('../../index.html')
+      );
+    });
+
+    const user = Auth.getUser();
+    document.getElementById('name').value  = user.name  || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
+
+    // Máscara: só dígitos
+    document.getElementById('phone').addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 11) value = value.slice(0, 11);
+      e.target.value = value;
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const updateData = {
+        name:  formData.get('name').trim(),
+        email: formData.get('email').trim(),
+        phone: formData.get('phone').trim()
+      };
+
+      const password = formData.get('password');
+      if (password) {
+        if (!Utils.validatePassword(password)) {
+          UI.showAlert('A senha deve ter no mínimo 6 caracteres.', 'error');
+          return;
+        }
+        updateData.password = password;
+      }
+
+      try {
+        UI.showLoading('Atualizando perfil...');
+        await API.updateUser(user.id, updateData);
+        Auth.updateUser(updateData);
+        UI.hideLoading();
+        UI.showAlert('Perfil atualizado com sucesso!', 'success');
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Erro ao atualizar perfil.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

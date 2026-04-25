@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Cadastro de Barbearia - ClubHair" />
+    <!-- CORREÇÃO: título tinha texto de debug "userType: 'barbershop'" -->
+    <title>Cadastro de Barbearia - ClubHair</title>
+    <link rel="stylesheet" href="../../assets/css/global.css" />
+    <link rel="stylesheet" href="../../assets/css/components.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: var(--spacing-md);
+      }
+
+      .register-container {
+        background: var(--surface-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: var(--spacing-2xl);
+        max-width: 600px;
+        width: 100%;
+      }
+
+      @media (max-width: 480px) {
+        .register-container {
+          padding: var(--spacing-lg);
+        }
+      }
+
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--background-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        border: 2px solid transparent;
+        transition: all var(--transition-base);
+      }
+
+      .step.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      .step.completed {
+        background: var(--success-color);
+        color: white;
+        border-color: var(--success-color);
+      }
+
+      .step-connector {
+        flex: 1;
+        max-width: 60px;
+        height: 2px;
+        background: var(--background-color);
+        border-radius: 1px;
+      }
+
+      .form-step {
+        display: none;
+      }
+      .form-step.active {
+        display: block;
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+    <main id="main" class="register-container">
+      <a href="../../index.html" class="back-link">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+      </a>
+
+      <header style="text-align: center; margin: 1.5rem 0">
+        <img
+          src="../../assets/images/logo.png"
+          alt="Logo ClubHair"
+          style="width: 60px; height: 60px; margin: 0 auto 1rem"
+        />
+        <h1>Cadastro de Barbearia</h1>
+        <p style="color: var(--text-secondary)">
+          Etapa <span id="currentStepText">1</span> de 2
+        </p>
+      </header>
+
+      <!-- Indicador de etapas -->
+      <div
+        class="step-indicator"
+        role="progressbar"
+        aria-valuenow="1"
+        aria-valuemin="1"
+        aria-valuemax="2"
+        aria-label="Etapa 1 de 2"
+        id="stepIndicator"
+      >
+        <div
+          class="step active"
+          id="step1"
+          aria-label="Etapa 1: Dados do usuário"
+        >
+          1
+        </div>
+        <div class="step-connector"></div>
+        <div class="step" id="step2" aria-label="Etapa 2: Dados da barbearia">
+          2
+        </div>
+      </div>
+
+      <form id="registerForm" novalidate>
+        <!-- ETAPA 1: Dados do usuário -->
+        <fieldset class="form-step active" id="stepOne">
+          <legend
+            style="
+              font-size: var(--text-xl);
+              font-weight: 600;
+              margin-bottom: 1.5rem;
+            "
+          >
+            Dados do Usuário
+          </legend>
+
+          <div class="form-group">
+            <label for="name" class="form-label required">Nome Completo</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="form-input"
+              autocomplete="name"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label required">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              autocomplete="email"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label required">Telefone</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              class="form-input"
+              autocomplete="tel"
+              placeholder="(00) 00000-0000"
+              required
+              aria-required="true"
+            />
+            <span class="form-help">Digite apenas números</span>
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label required">Senha</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              autocomplete="new-password"
+              placeholder="Mínimo 6 caracteres"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-block"
+            onclick="nextStep()"
+          >
+            Próximo <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        </fieldset>
+
+        <!-- ETAPA 2: Dados da barbearia -->
+        <fieldset class="form-step" id="stepTwo">
+          <legend
+            style="
+              font-size: var(--text-xl);
+              font-weight: 600;
+              margin-bottom: 1.5rem;
+            "
+          >
+            Dados da Barbearia
+          </legend>
+
+          <div class="form-group">
+            <label for="barbershopName" class="form-label required"
+              >Nome da Barbearia</label
+            >
+            <input
+              type="text"
+              id="barbershopName"
+              name="barbershopName"
+              class="form-input"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="barbershopPhone" class="form-label required"
+              >Telefone da Barbearia</label
+            >
+            <input
+              type="tel"
+              id="barbershopPhone"
+              name="barbershopPhone"
+              class="form-input"
+              placeholder="(00) 00000-0000"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="address" class="form-label required">Endereço</label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              class="form-input"
+              autocomplete="street-address"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div style="display: flex; gap: 1rem">
+            <button type="button" class="btn btn-outline" onclick="prevStep()">
+              <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+            </button>
+            <button type="submit" class="btn btn-success" style="flex: 1">
+              <i class="fas fa-check" aria-hidden="true"></i> Cadastrar
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </main>
+
+    <script src="../../assets/js/utils.js"></script>
+    <script src="../../assets/js/ui.js"></script>
+    <script src="../../assets/js/api.js"></script>
+    <script src="../../assets/js/auth.js"></script>
+    <script>
+      // Máscara de telefone
+      ["phone", "barbershopPhone"].forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) {
+          input.addEventListener("input", (e) => {
+            let value = e.target.value.replace(/\D/g, "");
+            if (value.length > 11) value = value.slice(0, 11);
+            e.target.value = value;
+          });
+        }
+      });
+
+      function nextStep() {
+        if (
+          !UI.validateForm(document.getElementById("stepOne"), {
+            name: { required: true, minLength: 3 },
+            email: { required: true, email: true },
+            phone: { required: true, phone: true },
+            password: { required: true, password: true },
+          })
+        ) {
+          UI.showAlert("Preencha todos os campos corretamente.", "error");
+          return;
+        }
+
+        document.getElementById("stepOne").classList.remove("active");
+        document.getElementById("stepTwo").classList.add("active");
+        document.getElementById("step1").classList.add("completed");
+        document.getElementById("step2").classList.add("active");
+        document.getElementById("currentStepText").textContent = "2";
+
+        const indicator = document.getElementById("stepIndicator");
+        indicator.setAttribute("aria-valuenow", "2");
+        indicator.setAttribute("aria-label", "Etapa 2 de 2");
+
+        // Foco no início da próxima etapa para acessibilidade
+        document.getElementById("barbershopName").focus();
+      }
+
+      function prevStep() {
+        document.getElementById("stepTwo").classList.remove("active");
+        document.getElementById("stepOne").classList.add("active");
+        document.getElementById("step1").classList.remove("completed");
+        document.getElementById("step2").classList.remove("active");
+        document.getElementById("currentStepText").textContent = "1";
+
+        const indicator = document.getElementById("stepIndicator");
+        indicator.setAttribute("aria-valuenow", "1");
+        indicator.setAttribute("aria-label", "Etapa 1 de 2");
+
+        document.getElementById("name").focus();
+      }
+
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          if (
+            !UI.validateForm(document.getElementById("stepTwo"), {
+              barbershopName: { required: true, minLength: 3 },
+              barbershopPhone: { required: true, phone: true },
+              address: { required: true, minLength: 5 },
+            })
+          ) {
+            UI.showAlert("Preencha todos os campos corretamente.", "error");
+            return;
+          }
+
+          const formData = new FormData(e.target);
+
+          const userData = {
+            name: formData.get("name").trim(),
+            email: formData.get("email").trim(),
+            phone: formData.get("phone").trim(),
+            password: formData.get("password"),
+            type: "barbershop",
+          };
+
+          const barbershopData = {
+            name: formData.get("barbershopName").trim(),
+            phone: formData.get("barbershopPhone").trim(),
+            address: formData.get("address").trim(),
+          };
+
+          try {
+            UI.showLoading("Criando conta...");
+            const userResponse = await Auth.register(userData);
+            barbershopData.userId = userResponse.user.id;
+            await API.createBarbershop(barbershopData);
+            UI.hideLoading();
+            UI.showAlert("Cadastro realizado com sucesso!", "success");
+            setTimeout(
+              () => (window.location.href = "./barbershop-dashboard.html"),
+              1500,
+            );
+          } catch (error) {
+            UI.hideLoading();
+            console.error("Erro:", error);
+            UI.showAlert(error.message || "Erro ao criar conta.", "error");
+          }
+        });
+    </script>
+  </body>
+</html>

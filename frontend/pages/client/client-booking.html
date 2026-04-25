@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Fazer Agendamento - ClubHair" />
+  <title>Fazer Agendamento - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button class="navbar-hamburger" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu" type="button">
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./client-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./client-barbershops.html" class="navbar-link"><i class="fas fa-store" aria-hidden="true"></i> Barbearias</a>
+        <a href="./client-appointments.html" class="navbar-link"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./client-profile.html" class="navbar-link"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <div class="card">
+        <!-- Volta para a página de serviços preservando o barbershopId -->
+        <a id="backLink" href="./client-barbershops.html" class="back-link">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+        </a>
+
+        <h1 style="margin: 1rem 0 0.5rem;">Fazer Agendamento</h1>
+        <div id="serviceInfo" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--background-color); border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--text-secondary);" aria-live="polite">
+          Carregando informações do serviço...
+        </div>
+
+        <form id="bookingForm" novalidate>
+          <div class="form-group">
+            <label for="date" class="form-label required">Data</label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              class="form-input"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="time" class="form-label required">Horário</label>
+            <input
+              type="time"
+              id="time"
+              name="time"
+              class="form-input"
+              required
+              aria-required="true"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-success btn-block">
+            <i class="fas fa-check" aria-hidden="true"></i> Confirmar Agendamento
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) {
+      window.location.href = './client-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza?', () => Auth.logout('../../index.html'));
+    });
+
+    const params       = new URLSearchParams(window.location.search);
+    const barbershopId = params.get('barbershopId');
+    const serviceId    = params.get('serviceId');
+    const user         = Auth.getUser();
+
+    if (!barbershopId || !serviceId) {
+      UI.showAlert('Informações inválidas.', 'error');
+      setTimeout(() => (window.location.href = './client-barbershops.html'), 2000);
+    } else {
+      // Atualiza link de voltar para preservar contexto
+      document.getElementById('backLink').href =
+        `./client-services.html?barbershopId=${barbershopId}`;
+
+      // Carrega e exibe informações do serviço selecionado
+      async function loadServiceInfo() {
+        try {
+          const service = await API.getService(serviceId);
+          document.getElementById('serviceInfo').innerHTML = `
+            <strong>${Utils.escapeHtml(service.name)}</strong>
+            &nbsp;·&nbsp;
+            ${Utils.formatCurrency(service.price)}
+            &nbsp;·&nbsp;
+            ${service.duration} min
+          `;
+        } catch (err) {
+          document.getElementById('serviceInfo').textContent = '';
+        }
+      }
+
+      loadServiceInfo();
+    }
+
+    // Data mínima = hoje
+    document.getElementById('date').min = Utils.getTodayDate();
+
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const date     = formData.get('date');
+      const time     = formData.get('time');
+
+      if (!date) {
+        UI.showAlert('Por favor, selecione uma data.', 'error');
+        return;
+      }
+
+      if (!Utils.isFutureDate(date)) {
+        UI.showAlert('Por favor, selecione uma data futura.', 'error');
+        return;
+      }
+
+      if (!time) {
+        UI.showAlert('Por favor, selecione um horário.', 'error');
+        return;
+      }
+
+      try {
+        UI.showLoading('Criando agendamento...');
+        await API.createSchedule({
+          date,
+          time,
+          clientId:     user.id,
+          barbershopId: parseInt(barbershopId),
+          serviceId:    parseInt(serviceId)
+        });
+        UI.hideLoading();
+        UI.showAlert('Agendamento realizado com sucesso!', 'success');
+        setTimeout(() => (window.location.href = './client-appointments.html'), 1500);
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Erro ao criar agendamento.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

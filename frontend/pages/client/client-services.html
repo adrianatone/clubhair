@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Serviços da Barbearia - ClubHair" />
+  <title>Serviços - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .services-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .service-card {
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .service-card h3 { margin: 0; font-size: var(--text-lg); }
+
+    .service-meta {
+      display: flex;
+      gap: var(--spacing-lg);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+    }
+
+    .service-meta span { display: flex; align-items: center; gap: var(--spacing-xs); }
+
+    @media (max-width: 480px) {
+      .services-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button class="navbar-hamburger" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu" type="button">
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./client-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./client-barbershops.html" class="navbar-link"><i class="fas fa-store" aria-hidden="true"></i> Barbearias</a>
+        <a href="./client-appointments.html" class="navbar-link"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./client-profile.html" class="navbar-link"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 1024px; margin: 0 auto;">
+      <header style="margin-bottom: 2rem;">
+        <a href="./client-barbershops.html" class="back-link">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar para Barbearias
+        </a>
+        <h1 id="barbershopName" style="margin: 1rem 0;">Serviços</h1>
+      </header>
+
+      <div id="servicesGrid" class="services-grid" aria-live="polite" aria-busy="true"></div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) {
+      window.location.href = './client-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza?', () => Auth.logout('../../index.html'));
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const barbershopId = params.get('barbershopId');
+
+    if (!barbershopId) {
+      UI.showAlert('Barbearia não encontrada.', 'error');
+      setTimeout(() => (window.location.href = './client-barbershops.html'), 2000);
+    }
+
+    async function loadServices() {
+      const grid = document.getElementById('servicesGrid');
+      grid.setAttribute('aria-busy', 'true');
+
+      try {
+        UI.showLoading('Carregando serviços...');
+        const [barbershopData, servicesData] = await Promise.all([
+          API.getBarbershop(barbershopId),
+          API.getServicesByBarbershop(barbershopId)
+        ]);
+
+        document.getElementById('barbershopName').textContent = `Serviços — ${barbershopData.name}`;
+        document.title = `${barbershopData.name} — ClubHair`;
+
+        UI.hideLoading();
+        grid.setAttribute('aria-busy', 'false');
+
+        if (!servicesData.services || servicesData.services.length === 0) {
+          UI.renderEmptyState(grid, 'Nenhum serviço disponível nesta barbearia.', 'fa-cut');
+          return;
+        }
+
+        grid.innerHTML = '';
+
+        servicesData.services.forEach(service => {
+          const card = Utils.createElement('article', { className: 'service-card' }, `
+            <h3>${Utils.escapeHtml(service.name)}</h3>
+            <div class="service-meta">
+              <span>
+                <i class="fas fa-tag" aria-hidden="true"></i>
+                <strong>${Utils.formatCurrency(service.price)}</strong>
+              </span>
+              <span>
+                <i class="fas fa-clock" aria-hidden="true"></i>
+                ${service.duration} min
+              </span>
+            </div>
+            <a
+              href="./client-booking.html?barbershopId=${barbershopId}&serviceId=${service.id}"
+              class="btn btn-primary btn-block"
+              aria-label="Agendar ${Utils.escapeHtml(service.name)} por ${Utils.formatCurrency(service.price)}"
+            >
+              <i class="fas fa-calendar-plus" aria-hidden="true"></i> Agendar
+            </a>
+          `);
+          grid.appendChild(card);
+        });
+
+      } catch (error) {
+        UI.hideLoading();
+        grid.setAttribute('aria-busy', 'false');
+        console.error('Erro:', error);
+        UI.showAlert('Erro ao carregar serviços.', 'error');
+      }
+    }
+
+    loadServices();
+  </script>
+</body>
+</html>

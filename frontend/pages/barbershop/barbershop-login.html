@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Login de Barbearia - ClubHair" />
+  <title>Login de Barbearia - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--spacing-md);
+    }
+
+    .login-container {
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: var(--spacing-2xl);
+      max-width: 450px;
+      width: 100%;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: var(--spacing-lg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <main id="main" class="login-container">
+    <a href="../../index.html" class="back-link">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+    </a>
+
+    <header style="text-align: center; margin: 1.5rem 0;">
+      <img
+        src="../../assets/images/logo.png"
+        alt="Logo ClubHair"
+        style="width: 60px; height: 60px; margin: 0 auto 1rem;"
+      />
+      <h1>Login de Barbearia</h1>
+      <p style="color: var(--text-secondary);">Entre com suas credenciais</p>
+    </header>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="email" class="form-label required">Email</label>
+        <div class="input-group">
+          <i class="fas fa-envelope input-group-icon" aria-hidden="true"></i>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            placeholder="seu@email.com"
+            autocomplete="email"
+            required
+            aria-required="true"
+            autofocus
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label required">Senha</label>
+        <div class="input-group">
+          <i class="fas fa-lock input-group-icon" aria-hidden="true"></i>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input"
+            placeholder="Digite sua senha"
+            autocomplete="current-password"
+            required
+            aria-required="true"
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-secondary btn-block">
+        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Entrar
+      </button>
+    </form>
+
+    <footer style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--background-color); color: var(--text-secondary);">
+      <p>
+        Não tem uma conta?
+        <a href="./barbershop-register.html" style="color: var(--primary-color);">Cadastre-se</a>
+      </p>
+    </footer>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    // Redireciona se já está logado como barbearia
+    if (Auth.isAuthenticated() && Auth.isBarbershop()) {
+      window.location.href = './barbershop-dashboard.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const isValid = UI.validateForm(e.target, {
+        email:    { required: true, email: true },
+        password: { required: true }
+      });
+
+      if (!isValid) {
+        UI.showAlert('Por favor, preencha todos os campos corretamente.', 'error');
+        return;
+      }
+
+      const formData = new FormData(e.target);
+      const email    = formData.get('email').trim();
+      const password = formData.get('password');
+
+      try {
+        UI.showLoading('Entrando...');
+
+        /**
+         * CORREÇÃO: Auth.login() já normaliza 'type' → 'userType' antes de retornar.
+         * A verificação abaixo usa o objeto já normalizado.
+         */
+        const response = await Auth.login(email, password);
+
+        // isBarbershop() lê o userType salvo no localStorage
+        if (!Auth.isBarbershop()) {
+          Auth.logout();
+          throw new Error('Esta área é exclusiva para barbearias.');
+        }
+
+        UI.hideLoading();
+        UI.showAlert(`Bem-vindo, ${response.user.name}!`, 'success');
+        setTimeout(() => (window.location.href = './barbershop-dashboard.html'), 1000);
+
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Email ou senha inválidos.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

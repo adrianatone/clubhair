@@ -1,42 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ClubHair - Sistema de Agendamento e Gestão para Barbearias">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ClubHair - Sistema de Agendamento e Gestão para Barbearias" />
   <title>ClubHair - Bem-vindo</title>
-  
-  <!-- CSS -->
-  <link rel="s tylesheet" href="./assets/css/global.css">
-  <link rel="stylesheet" href="./assets/css/components.css">
-  
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
+  <link rel="stylesheet" href="./assets/css/global.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
   <style>
-    /* Estilos específicos da página inicial */
     body {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-dark) 100%);
+      padding: var(--spacing-md);
     }
-    
+
     .home-container {
       background-color: var(--surface-color);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-xl);
       padding: var(--spacing-2xl);
       max-width: 600px;
-      width: 90%;
+      width: 100%;
       text-align: center;
     }
-    
-    .logo-section {
-      margin-bottom: var(--spacing-2xl);
-    }
-    
+
+    /* ── Logo ── */
+    .logo-section    { margin-bottom: var(--spacing-2xl); }
+
     .logo-wrapper {
       display: flex;
       align-items: center;
@@ -44,33 +40,18 @@
       gap: var(--spacing-md);
       margin-bottom: var(--spacing-md);
     }
-    
+
     .logo-line {
       flex: 1;
       height: 2px;
       background: linear-gradient(to right, transparent, var(--primary-color), transparent);
     }
-    
-    .logo-image {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-    }
-    
-    .site-title {
-      font-size: var(--text-3xl);
-      font-weight: 700;
-      color: var(--primary-color);
-      margin: 0;
-      letter-spacing: 2px;
-    }
-    
-    .site-subtitle {
-      color: var(--text-secondary);
-      margin-top: var(--spacing-sm);
-      font-size: var(--text-base);
-    }
-    
+
+    .logo-image    { width: 80px; height: 80px; object-fit: contain; }
+    .site-title    { font-size: var(--text-3xl); font-weight: 700; color: var(--primary-color); margin: 0; letter-spacing: 2px; }
+    .site-subtitle { color: var(--text-secondary); margin-top: var(--spacing-sm); font-size: var(--text-base); }
+
+    /* ── Grid de opções ── */
     .options-container {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -78,26 +59,11 @@
       align-items: center;
       margin-top: var(--spacing-2xl);
     }
-    
-    .option-section {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-md);
-    }
-    
-    .option-title {
-      font-size: var(--text-xl);
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: var(--spacing-sm);
-    }
-    
-    .option-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-sm);
-    }
-    
+
+    .option-section { display: flex; flex-direction: column; gap: var(--spacing-md); }
+    .option-title   { font-size: var(--text-xl); font-weight: 600; color: var(--text-primary); margin-bottom: var(--spacing-sm); }
+    .option-buttons { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+
     .option-btn {
       padding: var(--spacing-md);
       border-radius: var(--radius-md);
@@ -108,60 +74,65 @@
       justify-content: center;
       gap: var(--spacing-sm);
       text-decoration: none;
+      /* Área de toque mínima */
+      min-height: 44px;
     }
-    
+
+    .option-btn:focus-visible {
+      outline: 3px solid white;
+      outline-offset: 3px;
+    }
+
     .option-btn-client {
       background-color: var(--primary-color);
       color: white;
       border: 2px solid var(--primary-color);
     }
-    
+
     .option-btn-client:hover {
       background-color: var(--primary-dark);
-      color: var(--secondary-dark);
+      color: white;
       border-color: var(--primary-dark);
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
-    
+
     .option-btn-barbershop {
       background-color: var(--secondary-color);
       color: white;
       border: 2px solid var(--secondary-color);
     }
-    
+
     .option-btn-barbershop:hover {
       background-color: var(--secondary-dark);
       border-color: var(--secondary-dark);
+      color: white;
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
-    
+
+    /* ── Divider ── */
     .divider {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
+      /* altura mínima para as linhas decorativas não sumirem */
+      min-height: 120px;
     }
-    
+
     .divider::before,
     .divider::after {
       content: '';
       position: absolute;
       width: 2px;
-      height: 40px;
       background: linear-gradient(to bottom, transparent, var(--primary-color), transparent);
     }
-    
-    .divider::before {
-      top: -50px;
-    }
-    
-    .divider::after {
-      bottom: -50px;
-    }
-    
+
+    .divider::before { top: 0;    bottom: 50%; margin-bottom: 28px; }
+    .divider::after  { bottom: 0; top: 50%;    margin-top: 28px; }
+
     .divider-text {
       background-color: var(--primary-color);
       color: white;
@@ -173,129 +144,105 @@
       justify-content: center;
       font-weight: 700;
       font-size: var(--text-lg);
+      position: relative;
+      z-index: 1;
     }
-    
+
+    /* ── Footer ── */
     .footer-text {
       margin-top: var(--spacing-2xl);
       color: var(--text-secondary);
       font-size: var(--text-sm);
     }
-    
-    /* Responsividade */
-    @media (max-width: 768px) {
-      .home-container {
-        padding: var(--spacing-lg);
-      }
-      
+
+    /* ── Responsividade ── */
+    @media (max-width: 560px) {
+      .home-container { padding: var(--spacing-lg); }
+
       .options-container {
         grid-template-columns: 1fr;
         gap: var(--spacing-xl);
       }
-      
+
+      /* CORREÇÃO: em vez de rotacionar o divider (que quebrava as linhas decorativas),
+         substituímos por um separador horizontal simples em mobile */
       .divider {
-        transform: rotate(90deg);
+        flex-direction: row;
+        min-height: auto;
+        gap: var(--spacing-md);
       }
-      
+
       .divider::before,
       .divider::after {
-        width: 40px;
+        width: auto;
         height: 2px;
+        flex: 1;
+        position: static;
+        margin: 0;
+        background: linear-gradient(to right, transparent, var(--primary-color), transparent);
       }
-      
-      .divider::before {
-        top: 0;
-        left: -50px;
-      }
-      
-      .divider::after {
-        bottom: 0;
-        right: -50px;
-      }
-      
-      .option-buttons {
-        flex-direction: row;
-      }
+
+      .option-buttons { flex-direction: row; }
+
+      .option-btn { flex: 1; }
     }
   </style>
 </head>
 <body>
-  <!-- Skip to main content para acessibilidade -->
   <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
-  
+
   <main id="main" class="home-container" role="main">
-    <!-- Logo e título -->
     <header class="logo-section">
       <div class="logo-wrapper">
         <div class="logo-line" aria-hidden="true"></div>
-        <img 
-          src="./assets/images/logo.png" 
-          alt="Logo ClubHair" 
-          class="logo-image"
-        >
+        <img src="./assets/images/logo.png" alt="Logo ClubHair" class="logo-image" />
         <div class="logo-line" aria-hidden="true"></div>
       </div>
       <h1 class="site-title">CLUB HAIR</h1>
       <p class="site-subtitle">Sistema de Agendamento para Barbearias</p>
     </header>
-    
-    <!-- Opções de acesso -->
-    <section class="options-container">
-      <!-- Opção Cliente -->
+
+    <section class="options-container" aria-label="Opções de acesso">
+      <!-- Cliente -->
       <div class="option-section">
         <h2 class="option-title">Sou Cliente</h2>
         <div class="option-buttons">
-          <a 
-            href="./pages/client/client-login.html" 
-            class="option-btn option-btn-client"
-            aria-label="Entrar como cliente"
-          >
-            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-            Entrar
+          <a href="./pages/client/client-login.html" class="option-btn option-btn-client" aria-label="Entrar como cliente">
+            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Entrar
           </a>
-          <a 
-            href="./pages/client/client-register.html" 
-            class="option-btn option-btn-client"
-            aria-label="Cadastrar-se como cliente"
-          >
-            <i class="fas fa-user-plus" aria-hidden="true"></i>
-            Cadastrar
+          <a href="./pages/client/client-register.html" class="option-btn option-btn-client" aria-label="Cadastrar-se como cliente">
+            <i class="fas fa-user-plus" aria-hidden="true"></i> Cadastrar
           </a>
         </div>
       </div>
-      
+
       <!-- Divider -->
       <div class="divider" aria-hidden="true">
         <span class="divider-text">OU</span>
       </div>
-      
-      <!-- Opção Barbearia -->
+
+      <!-- Barbearia -->
       <div class="option-section">
         <h2 class="option-title">Sou Barbearia</h2>
         <div class="option-buttons">
-          <a 
-            href="./pages/barbershop/barbershop-login.html" 
-            class="option-btn option-btn-barbershop"
-            aria-label="Entrar como barbearia"
-          >
-            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-            Entrar
+          <a href="./pages/barbershop/barbershop-login.html" class="option-btn option-btn-barbershop" aria-label="Entrar como barbearia">
+            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Entrar
           </a>
-          <a 
-            href="./pages/barbershop/barbershop-register.html" 
-            class="option-btn option-btn-barbershop"
-            aria-label="Cadastrar-se como barbearia"
-          >
-            <i class="fas fa-store" aria-hidden="true"></i>
-            Cadastrar
+          <a href="./pages/barbershop/barbershop-register.html" class="option-btn option-btn-barbershop" aria-label="Cadastrar-se como barbearia">
+            <i class="fas fa-store" aria-hidden="true"></i> Cadastrar
           </a>
         </div>
       </div>
     </section>
-    
-    <!-- Footer -->
+
     <footer class="footer-text">
-      <p>&copy; 2024 ClubHair. Sistema de agendamento profissional.</p>
+      <!-- CORREÇÃO: ano dinâmico via JS -->
+      <p>&copy; <span id="year"></span> ClubHair. Sistema de agendamento profissional.</p>
     </footer>
   </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>

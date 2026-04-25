@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Meus Agendamentos - ClubHair" />
+  <title>Meus Agendamentos - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./client-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button
+        class="navbar-hamburger"
+        aria-expanded="false"
+        aria-controls="navbar-menu"
+        aria-label="Abrir menu de navegação"
+        type="button"
+      >
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./client-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./client-barbershops.html" class="navbar-link"><i class="fas fa-store" aria-hidden="true"></i> Barbearias</a>
+        <a href="./client-appointments.html" class="navbar-link active" aria-current="page"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./client-profile.html" class="navbar-link"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 1024px; margin: 0 auto;">
+      <header style="margin-bottom: 2rem;">
+        <h1>Meus Agendamentos</h1>
+        <p>Gerencie seus agendamentos</p>
+      </header>
+      <div id="appointmentsList" aria-live="polite" aria-busy="true"></div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isClient()) {
+      window.location.href = './client-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza que deseja sair?', () =>
+        Auth.logout('../../index.html')
+      );
+    });
+
+    const user = Auth.getUser();
+
+    async function loadAppointments() {
+      const container = document.getElementById('appointmentsList');
+      container.setAttribute('aria-busy', 'true');
+
+      try {
+        UI.showLoading('Carregando agendamentos...');
+
+        /**
+         * CORREÇÃO N+1: o endpoint /schedules/client/:id já retorna Barbershop e Service
+         * aninhados via include no backend. Usamos esses dados diretamente em vez de
+         * fazer uma requisição extra por agendamento.
+         */
+        const data = await API.getSchedulesByClient(user.id);
+        UI.hideLoading();
+        container.setAttribute('aria-busy', 'false');
+
+        if (!data.schedules || data.schedules.length === 0) {
+          UI.renderEmptyState(container, 'Você não tem agendamentos.', 'fa-calendar');
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-container">
+            <table class="table" aria-label="Lista de agendamentos">
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Hora</th>
+                  <th scope="col">Barbearia</th>
+                  <th scope="col">Serviço</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="appointmentsBody"></tbody>
+            </table>
+          </div>
+        `;
+
+        const tbody = document.getElementById('appointmentsBody');
+
+        data.schedules.forEach(schedule => {
+          const row = document.createElement('tr');
+
+          // Dados aninhados já vêm na resposta — sem requisições extras
+          const barbershopName = schedule.Barbershop
+            ? schedule.Barbershop.name
+            : `Barbearia #${schedule.barbershopId}`;
+
+          const serviceName = schedule.Service
+            ? schedule.Service.name
+            : `Serviço #${schedule.serviceId}`;
+
+          /**
+           * CORREÇÃO: status 'canceled' (1 l) — alinhado com o backend.
+           * Somente agendamentos 'pending' podem ser cancelados pelo cliente.
+           */
+          const canCancel = schedule.status === 'pending';
+
+          row.innerHTML = `
+            <td data-label="Data">${Utils.formatDate(schedule.date)}</td>
+            <td data-label="Hora">${Utils.formatTime(schedule.time)}</td>
+            <td data-label="Barbearia">${Utils.escapeHtml(barbershopName)}</td>
+            <td data-label="Serviço">${Utils.escapeHtml(serviceName)}</td>
+            <td data-label="Status">
+              <span class="badge ${Utils.getStatusClass(schedule.status)}">
+                ${Utils.getStatusText(schedule.status)}
+              </span>
+            </td>
+            <td data-label="Ações" class="table-actions">
+              ${canCancel
+                ? `<button
+                     class="btn btn-sm btn-error"
+                     onclick="cancelAppointment(${schedule.id})"
+                     aria-label="Cancelar agendamento de ${Utils.escapeHtml(serviceName)} em ${Utils.formatDate(schedule.date)}"
+                     type="button"
+                   >
+                     <i class="fas fa-times" aria-hidden="true"></i> Cancelar
+                   </button>`
+                : '<span style="color: var(--text-light);">—</span>'
+              }
+            </td>
+          `;
+
+          tbody.appendChild(row);
+        });
+
+      } catch (error) {
+        UI.hideLoading();
+        container.setAttribute('aria-busy', 'false');
+        console.error('Erro:', error);
+        UI.showAlert('Erro ao carregar agendamentos.', 'error');
+      }
+    }
+
+    async function cancelAppointment(scheduleId) {
+      UI.confirmModal(
+        'Cancelar Agendamento',
+        'Tem certeza que deseja cancelar este agendamento?',
+        async () => {
+          try {
+            UI.showLoading('Cancelando...');
+            // CORREÇÃO: status 'canceled' com 1 'l' — alinhado com o backend
+            await API.updateScheduleStatus(scheduleId, 'canceled');
+            UI.hideLoading();
+            UI.showAlert('Agendamento cancelado com sucesso!', 'success');
+            loadAppointments();
+          } catch (error) {
+            UI.hideLoading();
+            console.error('Erro:', error);
+            UI.showAlert(error.message || 'Erro ao cancelar agendamento.', 'error');
+          }
+        }
+      );
+    }
+
+    loadAppointments();
+  </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Perfil da Barbearia - ClubHair" />
+  <title>Perfil da Barbearia - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./barbershop-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button class="navbar-hamburger" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu" type="button">
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./barbershop-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./barbershop-services.html" class="navbar-link"><i class="fas fa-cut" aria-hidden="true"></i> Serviços</a>
+        <a href="./barbershop-appointments.html" class="navbar-link"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./barbershop-profile.html" class="navbar-link active" aria-current="page"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="card">
+        <h1 style="margin-bottom: 2rem;">Perfil da Barbearia</h1>
+        <form id="profileForm" novalidate>
+          <h2 style="font-size: var(--text-lg); margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--primary-color);">
+            Dados do Usuário
+          </h2>
+
+          <div class="form-group">
+            <label for="name" class="form-label required">Nome</label>
+            <input type="text" id="name" name="name" class="form-input" required aria-required="true" />
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label required">Email</label>
+            <input type="email" id="email" name="email" class="form-input" required aria-required="true" autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Telefone</label>
+            <input type="tel" id="phone" name="phone" class="form-input" autocomplete="tel" />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Nova Senha <span style="font-weight:400; color: var(--text-secondary);">(opcional)</span></label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="Deixe em branco para não alterar"
+              autocomplete="new-password"
+              aria-describedby="password-help"
+            />
+            <span id="password-help" class="form-help">Mínimo 6 caracteres se preenchida.</span>
+          </div>
+
+          <h2 style="font-size: var(--text-lg); margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--primary-color);">
+            Dados da Barbearia
+          </h2>
+
+          <div class="form-group">
+            <label for="barbershopName" class="form-label required">Nome da Barbearia</label>
+            <input type="text" id="barbershopName" name="barbershopName" class="form-input" required aria-required="true" />
+          </div>
+
+          <div class="form-group">
+            <label for="barbershopPhone" class="form-label required">Telefone da Barbearia</label>
+            <input type="tel" id="barbershopPhone" name="barbershopPhone" class="form-input" required aria-required="true" />
+          </div>
+
+          <div class="form-group">
+            <label for="address" class="form-label required">Endereço</label>
+            <input type="text" id="address" name="address" class="form-input" required aria-required="true" autocomplete="street-address" />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fas fa-save" aria-hidden="true"></i> Salvar Alterações
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isBarbershop()) {
+      window.location.href = './barbershop-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza?', () => Auth.logout('../../index.html'));
+    });
+
+    const user = Auth.getUser();
+    let barbershopId = null;
+
+    async function loadProfile() {
+      try {
+        UI.showLoading('Carregando perfil...');
+        document.getElementById('name').value  = user.name  || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('phone').value = user.phone || '';
+
+        const barbershopData = await API.getBarbershopByUserId(user.id);
+        const barbershop = barbershopData.barbershop;
+        barbershopId = barbershop.id;
+
+        document.getElementById('barbershopName').value  = barbershop.name;
+        document.getElementById('barbershopPhone').value = barbershop.phone;
+        document.getElementById('address').value         = barbershop.address;
+
+        UI.hideLoading();
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert('Erro ao carregar perfil.', 'error');
+      }
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const userData = {
+        name:  formData.get('name').trim(),
+        email: formData.get('email').trim(),
+        phone: formData.get('phone').trim()
+      };
+
+      const password = formData.get('password');
+      if (password) {
+        if (!Utils.validatePassword(password)) {
+          UI.showAlert('A senha deve ter no mínimo 6 caracteres.', 'error');
+          return;
+        }
+        userData.password = password;
+      }
+
+      const barbershopData = {
+        name:    formData.get('barbershopName').trim(),
+        phone:   formData.get('barbershopPhone').trim(),
+        address: formData.get('address').trim()
+      };
+
+      try {
+        UI.showLoading('Atualizando perfil...');
+        await API.updateUser(user.id, userData);
+        await API.updateBarbershop(barbershopId, barbershopData);
+        Auth.updateUser(userData);
+        UI.hideLoading();
+        UI.showAlert('Perfil atualizado com sucesso!', 'success');
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Erro ao atualizar perfil.', 'error');
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

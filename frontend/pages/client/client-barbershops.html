@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Barbearias Disponíveis - ClubHair" />
+    <title>Barbearias Disponíveis - ClubHair</title>
+    <link rel="stylesheet" href="../../assets/css/global.css" />
+    <link rel="stylesheet" href="../../assets/css/components.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .page-container {
+        min-height: 100vh;
+        background-color: var(--background-color);
+      }
+      .page-content {
+        max-width: var(--max-width-lg);
+        margin: 0 auto;
+        padding: var(--spacing-xl) var(--spacing-md);
+      }
+      .page-header {
+        margin-bottom: var(--spacing-xl);
+      }
+      .page-title {
+        font-size: var(--text-3xl);
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .barbershops-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+        min-height: 60vh;
+      }
+
+      .barbershops-grid:has(.empty-state) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .barbershop-card {
+        background-color: var(--surface-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: var(--spacing-lg);
+        transition: all var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+      }
+
+      .barbershop-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .barbershop-name {
+        font-size: var(--text-xl);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      /* dl sem estilos padrão do browser */
+      .barbershop-info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        color: var(--text-secondary);
+        margin: 0;
+        padding: 0;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
+
+      .info-item i {
+        margin-top: 3px;
+        flex-shrink: 0;
+      }
+      .info-item dd {
+        margin: 0;
+      }
+
+      /* Foco visível no link "Ver Serviços" */
+      .barbershop-card .btn:focus-visible {
+        outline: 2px solid var(--primary-dark);
+        outline-offset: 3px;
+      }
+
+      @media (max-width: 480px) {
+        .barbershops-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+    <nav class="navbar" role="navigation" aria-label="Navegação principal">
+      <div class="navbar-container">
+        <a
+          href="./client-dashboard.html"
+          class="navbar-logo"
+          aria-label="ClubHair - Ir para início"
+        >
+          <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+          <span>ClubHair</span>
+        </a>
+        <button
+          class="navbar-hamburger"
+          aria-expanded="false"
+          aria-controls="navbar-menu"
+          aria-label="Abrir menu"
+          type="button"
+        >
+          <span class="hamburger-line" aria-hidden="true"></span>
+          <span class="hamburger-line" aria-hidden="true"></span>
+          <span class="hamburger-line" aria-hidden="true"></span>
+        </button>
+        <div class="navbar-menu" id="navbar-menu">
+          <a href="./client-dashboard.html" class="navbar-link"
+            ><i class="fas fa-home" aria-hidden="true"></i> Início</a
+          >
+          <a
+            href="./client-barbershops.html"
+            class="navbar-link active"
+            aria-current="page"
+            ><i class="fas fa-store" aria-hidden="true"></i> Barbearias</a
+          >
+          <a href="./client-appointments.html" class="navbar-link"
+            ><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a
+          >
+          <a href="./client-profile.html" class="navbar-link"
+            ><i class="fas fa-user" aria-hidden="true"></i> Perfil</a
+          >
+          <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main" class="page-container">
+      <div class="page-content">
+        <header class="page-header">
+          <h1 class="page-title">Barbearias Disponíveis</h1>
+          <p>Escolha uma barbearia para ver os serviços disponíveis</p>
+        </header>
+        <div
+          id="barbershopsGrid"
+          class="barbershops-grid"
+          aria-live="polite"
+          aria-busy="true"
+        ></div>
+      </div>
+    </main>
+
+    <script src="../../assets/js/utils.js"></script>
+    <script src="../../assets/js/ui.js"></script>
+    <script src="../../assets/js/api.js"></script>
+    <script src="../../assets/js/auth.js"></script>
+    <script>
+      if (!Auth.isAuthenticated() || !Auth.isClient()) {
+        window.location.href = "./client-login.html";
+      }
+
+      UI.initMobileNav();
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        UI.confirmModal("Confirmar Saída", "Tem certeza que deseja sair?", () =>
+          Auth.logout("../../index.html"),
+        );
+      });
+
+      async function loadBarbershops() {
+        const grid = document.getElementById("barbershopsGrid");
+        grid.setAttribute("aria-busy", "true");
+
+        try {
+          UI.showLoading("Carregando barbearias...");
+          const response = await API.getAllBarbershops();
+          UI.hideLoading();
+          grid.setAttribute("aria-busy", "false");
+
+          if (!response.barbershops || response.barbershops.length === 0) {
+            UI.renderEmptyState(
+              grid,
+              "Nenhuma barbearia cadastrada no momento.",
+              "fa-store",
+            );
+            return;
+          }
+
+          grid.innerHTML = "";
+
+          response.barbershops.forEach((barbershop) => {
+            /*
+             * ACESSIBILIDADE — leitor de tela e navegação por Tab:
+             *
+             * 1. <dl> + <dt class="sr-only"> + <dd>
+             *    O leitor de tela anuncia "Telefone: (56) 75676-5478"
+             *    e "Endereço: Avenida Paulista 1212" em vez de valores sem rótulo.
+             *    Visualmente nada muda — .sr-only oculta o dt da tela.
+             *
+             * 2. O botão "Ver Serviços" é um <a> nativo, portanto já entra
+             *    na ordem de Tab automaticamente sem nenhum tabindex extra.
+             *    A ordem de foco por Tab segue: navbar → cards (link de cada card).
+             *
+             * 3. aria-label no <a> descreve ação + destino com clareza:
+             *    "Ver serviços de Clubhair Barber Teste"
+             */
+            const card = Utils.createElement(
+              "article",
+              { className: "barbershop-card" },
+              `
+            <h2 class="barbershop-name">${Utils.escapeHtml(barbershop.name)}</h2>
+
+            <dl class="barbershop-info">
+              <div class="info-item">
+                <i class="fas fa-phone" aria-hidden="true"></i>
+                <dt class="sr-only">Telefone</dt>
+                <dd>${Utils.formatPhone(barbershop.phone)}</dd>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                <dt class="sr-only">Endereço</dt>
+                <dd>${Utils.escapeHtml(barbershop.address)}</dd>
+              </div>
+            </dl>
+
+            <a
+              href="./client-services.html?barbershopId=${barbershop.id}"
+              class="btn btn-primary btn-block"
+              aria-label="Ver serviços de ${Utils.escapeHtml(barbershop.name)}"
+            >
+              <i class="fas fa-cut" aria-hidden="true"></i> Ver Serviços
+            </a>
+          `,
+            );
+
+            grid.appendChild(card);
+          });
+        } catch (error) {
+          UI.hideLoading();
+          grid.setAttribute("aria-busy", "false");
+          console.error("Erro ao carregar barbearias:", error);
+          UI.showAlert(
+            "Erro ao carregar barbearias. Tente novamente.",
+            "error",
+          );
+        }
+      }
+
+      loadBarbershops();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gerenciar Serviços - ClubHair" />
+  <title>Gerenciar Serviços - ClubHair</title>
+  <link rel="stylesheet" href="../../assets/css/global.css" />
+  <link rel="stylesheet" href="../../assets/css/components.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="navbar" role="navigation" aria-label="Navegação principal">
+    <div class="navbar-container">
+      <a href="./barbershop-dashboard.html" class="navbar-logo" aria-label="ClubHair - Ir para início">
+        <img src="../../assets/images/logo.png" alt="" aria-hidden="true" />
+        <span>ClubHair</span>
+      </a>
+      <button class="navbar-hamburger" aria-expanded="false" aria-controls="navbar-menu" aria-label="Abrir menu" type="button">
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+        <span class="hamburger-line" aria-hidden="true"></span>
+      </button>
+      <div class="navbar-menu" id="navbar-menu">
+        <a href="./barbershop-dashboard.html" class="navbar-link"><i class="fas fa-home" aria-hidden="true"></i> Início</a>
+        <a href="./barbershop-services.html" class="navbar-link active" aria-current="page"><i class="fas fa-cut" aria-hidden="true"></i> Serviços</a>
+        <a href="./barbershop-appointments.html" class="navbar-link"><i class="fas fa-calendar" aria-hidden="true"></i> Agendamentos</a>
+        <a href="./barbershop-profile.html" class="navbar-link"><i class="fas fa-user" aria-hidden="true"></i> Perfil</a>
+        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main" style="padding: 2rem; min-height: 100vh; background: var(--background-color);">
+    <div style="max-width: 1024px; margin: 0 auto;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1>Gerenciar Serviços</h1>
+          <p>Adicione e gerencie os serviços oferecidos</p>
+        </div>
+        <button id="addServiceBtn" class="btn btn-primary" type="button">
+          <i class="fas fa-plus" aria-hidden="true"></i> Adicionar Serviço
+        </button>
+      </header>
+
+      <div id="servicesList" aria-live="polite" aria-busy="true"></div>
+    </div>
+  </main>
+
+  <script src="../../assets/js/utils.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/api.js"></script>
+  <script src="../../assets/js/auth.js"></script>
+  <script>
+    if (!Auth.isAuthenticated() || !Auth.isBarbershop()) {
+      window.location.href = './barbershop-login.html';
+    }
+
+    UI.initMobileNav();
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      UI.confirmModal('Confirmar Saída', 'Tem certeza?', () => Auth.logout('../../index.html'));
+    });
+
+    const user = Auth.getUser();
+    let barbershopId = null;
+
+    async function loadBarbershopAndServices() {
+      const container = document.getElementById('servicesList');
+      container.setAttribute('aria-busy', 'true');
+
+      try {
+        UI.showLoading('Carregando serviços...');
+        const barbershopData = await API.getBarbershopByUserId(user.id);
+        barbershopId = barbershopData.barbershop.id;
+        const servicesData = await API.getServicesByBarbershop(barbershopId);
+        UI.hideLoading();
+        container.setAttribute('aria-busy', 'false');
+
+        if (!servicesData.services || servicesData.services.length === 0) {
+          UI.renderEmptyState(container, 'Nenhum serviço cadastrado. Clique em "Adicionar Serviço".', 'fa-cut');
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-container">
+            <table class="table" aria-label="Lista de serviços da barbearia">
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Preço</th>
+                  <th scope="col">Duração</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="servicesBody"></tbody>
+            </table>
+          </div>
+        `;
+
+        const tbody = document.getElementById('servicesBody');
+
+        servicesData.services.forEach(service => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td data-label="Nome">${Utils.escapeHtml(service.name)}</td>
+            <td data-label="Preço">${Utils.formatCurrency(service.price)}</td>
+            <td data-label="Duração">${service.duration} min</td>
+            <td data-label="Ações">
+              <div class="table-actions">
+                <button
+                  class="btn btn-sm btn-error"
+                  onclick="deleteService(${service.id})"
+                  aria-label="Excluir serviço ${Utils.escapeHtml(service.name)}"
+                  type="button"
+                >
+                  <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+
+      } catch (error) {
+        UI.hideLoading();
+        container.setAttribute('aria-busy', 'false');
+        console.error('Erro:', error);
+        UI.showAlert('Erro ao carregar serviços.', 'error');
+      }
+    }
+
+    document.getElementById('addServiceBtn').addEventListener('click', () => {
+      UI.showModal('Adicionar Serviço', `
+        <div class="form-group">
+          <label for="serviceName" class="form-label required">Nome do Serviço</label>
+          <input type="text" id="serviceName" name="serviceName" class="form-input" required aria-required="true" />
+        </div>
+        <div class="form-group">
+          <label for="servicePrice" class="form-label required">Preço (R$)</label>
+          <input type="number" id="servicePrice" name="servicePrice" class="form-input" step="0.01" min="0.01" required aria-required="true" />
+        </div>
+        <div class="form-group">
+          <label for="serviceDuration" class="form-label required">Duração (minutos)</label>
+          <input type="number" id="serviceDuration" name="serviceDuration" class="form-input" min="1" max="480" required aria-required="true" />
+        </div>
+      `, [
+        { text: 'Cancelar', className: 'btn btn-outline' },
+        { text: 'Adicionar', className: 'btn btn-primary', onClick: addService, keepOpen: true }
+      ]);
+    });
+
+    async function addService() {
+      const name     = document.getElementById('serviceName')?.value?.trim();
+      const price    = document.getElementById('servicePrice')?.value;
+      const duration = document.getElementById('serviceDuration')?.value;
+
+      if (!name || name.length < 2) {
+        UI.showAlert('Nome do serviço deve ter no mínimo 2 caracteres.', 'error');
+        return;
+      }
+      if (!price || parseFloat(price) <= 0) {
+        UI.showAlert('Preço deve ser maior que zero.', 'error');
+        return;
+      }
+      if (!duration || parseInt(duration) < 1 || parseInt(duration) > 480) {
+        UI.showAlert('Duração deve ser entre 1 e 480 minutos.', 'error');
+        return;
+      }
+
+      try {
+        UI.showLoading('Adicionando serviço...');
+        await API.createService({
+          name,
+          price:        parseFloat(price),
+          duration:     parseInt(duration),
+          barbershopId
+        });
+        UI.hideLoading();
+        UI.hideModal();
+        UI.showAlert('Serviço adicionado com sucesso!', 'success');
+        await loadBarbershopAndServices();
+      } catch (error) {
+        UI.hideLoading();
+        console.error('Erro:', error);
+        UI.showAlert(error.message || 'Erro ao adicionar serviço.', 'error');
+      }
+    }
+
+    async function deleteService(serviceId) {
+      UI.confirmModal(
+        'Excluir Serviço',
+        'Tem certeza que deseja excluir este serviço? Agendamentos existentes manterão o registro, mas sem referência ao serviço.',
+        async () => {
+          try {
+            UI.showLoading('Excluindo...');
+            await API.deleteService(serviceId);
+            UI.hideLoading();
+            UI.showAlert('Serviço excluído com sucesso!', 'success');
+            loadBarbershopAndServices();
+          } catch (error) {
+            UI.hideLoading();
+            console.error('Erro:', error);
+            UI.showAlert('Erro ao excluir serviço.', 'error');
+          }
+        }
+      );
+    }
+
+    loadBarbershopAndServices();
+  </script>
+</body>
+</html>
